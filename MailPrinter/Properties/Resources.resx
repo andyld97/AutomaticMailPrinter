@@ -121,7 +121,7 @@
     <value>MailPrinter - Orders</value>
   </data>
   <data name="strConnectToMailServer" xml:space="preserve">
-    <value>Connection to the mail-server {0} ...</value>
+    <value>Connecting to the mail-server {0} ...</value>
   </data>
   <data name="strFailedToReadConfigFile" xml:space="preserve">
     <value>Faild to read config file</value>

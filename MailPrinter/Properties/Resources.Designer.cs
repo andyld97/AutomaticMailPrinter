@@ -79,7 +79,7 @@ namespace MailPrinter.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Connection to the mail-server {0} ....
+        ///   Looks up a localized string similar to Connecting to the mail-server {0} ....
         /// </summary>
         public static string strConnectToMailServer {
             get {
