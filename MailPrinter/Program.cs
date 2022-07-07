@@ -23,7 +23,7 @@ namespace MailPrinter
 
         static void Main(string[] args)
         {
-            Console.Title = "MailPrinter - Bestellungen";
+            Console.Title = MailPrinter.Properties.Resources.strAppTitle;
 
             try
             {
@@ -43,7 +43,7 @@ namespace MailPrinter
                 foreach (var word in filterProperty.EnumerateArray())
                     Filter[counter++] = word.GetString().ToLower();
 
-                Console.WriteLine($"Die Verbindung zum Mail-Server \"{ImapServer}:{ImapPort}\" wird hergestellt ...");
+                Console.WriteLine(string.Format(MailPrinter.Properties.Resources.strConnectToMailServer, $"\"{ImapServer}:{ImapPort}\""));
 
                 client = new ImapClient();
                 client.Connect(ImapServer, ImapPort, true);
@@ -58,7 +58,7 @@ namespace MailPrinter
             catch (Exception ex)
             {
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine($"Fehler beim Einlesen der Config-Datei: {ex.Message}");
+                Console.WriteLine($"{MailPrinter.Properties.Resources.strFailedToReadConfigFile}: {ex.Message}");
                 Console.ResetColor();
             }
 
@@ -69,13 +69,13 @@ namespace MailPrinter
         {
             try
             {
-                Console.WriteLine("Suche nach Bestellungen ...");
+                Console.WriteLine(MailPrinter.Properties.Resources.strLookingForUnreadMails);
                 bool found = false;
 
                 if (!client.IsAuthenticated || !client.IsConnected)
                 {
                     Console.ForegroundColor = ConsoleColor.DarkYellow;
-                    Console.WriteLine("Der Mail-Client ist nicht mehr verbunden, verbinde erneut ...");
+                    Console.WriteLine(Properties.Resources.strMailClientIsNotConnectedAnymore);
                     Console.ResetColor();
 
                     try
@@ -88,13 +88,13 @@ namespace MailPrinter
                         inbox = client.Inbox;
 
                         Console.ForegroundColor = ConsoleColor.Green;
-                        Console.WriteLine("Verbindung erfolgreich!");
+                        Console.WriteLine(Properties.Resources.strConnectionEstablishedSuccess);
                         Console.ResetColor();
                     }
                     catch (Exception ex)
                     {
                         Console.ForegroundColor = ConsoleColor.Red;
-                        Console.WriteLine($"Verbindung fehlgeschlagen: {ex.Message}!");
+                        Console.WriteLine($"{Properties.Resources.strFailedToConnect}: {ex.Message}!");
                         Console.ResetColor();
                         return;
                     }
@@ -111,15 +111,15 @@ namespace MailPrinter
                     {
                         // Print text
                         Console.ForegroundColor = ConsoleColor.Green;
-                        Console.WriteLine($"Bestellung gefunden: {message.Subject}");
+                        Console.WriteLine($"{string.Format(Properties.Resources.strFoundUnreadMail, Filter.Where(f => subject.Contains(f)).FirstOrDefault())} {message.Subject}");
 
                         Console.ForegroundColor = ConsoleColor.DarkYellow;
-                        Console.WriteLine("Bestellungs-Email als gelesen markieren ...");
+                        Console.WriteLine(Properties.Resources.strMarkMailAsRead);
 
                         // Mark mail as read
                         inbox.SetFlags(uid, MessageFlags.Seen, true);
 
-                        Console.WriteLine($"Drucken von Bestellung \"{message.Subject}\" an {PrinterName} ...");
+                        Console.WriteLine(string.Format(Properties.Resources.strPrintMessage, message.Subject, PrinterName));
                         Console.ResetColor();
 
                         PrintHtmlPage(message.HtmlBody);
@@ -132,16 +132,17 @@ namespace MailPrinter
                 if (!found)
                 {
                     Console.ForegroundColor = ConsoleColor.Gray;
-                    Console.WriteLine($"Keine Bestellungen gefunden!");
+                    Console.WriteLine(Properties.Resources.strNoUnreadMailFound);
                     Console.ResetColor();
                 }
 
+                // Do not disconnect here!
                 // client.Disconnect(true);
             }
             catch (Exception ex)
             {
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine($"Fehler beim Abrufen der E-Mails: {ex.Message}");
+                Console.WriteLine($"{Properties.Resources.strFailedToRecieveMails}: {ex.Message}");
                 Console.ResetColor();
             }
         }
@@ -157,7 +158,7 @@ namespace MailPrinter
             catch (Exception ex)
             {
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine($"Fehler beim Abspielen des Sounds: {ex.Message}");
+                Console.WriteLine($"{Properties.Resources.strFailedToPlaySound}: {ex.Message}");
                 Console.ResetColor();
             }
         }
@@ -173,7 +174,7 @@ namespace MailPrinter
             catch (Exception ex)
             {
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine($"Fehler beim Drucken der Bestellung: {ex.Message}");
+                Console.WriteLine($"{Properties.Resources.strFailedToPrintMail}: {ex.Message}");
                 Console.ResetColor();
             }
         }
