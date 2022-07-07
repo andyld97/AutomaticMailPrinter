@@ -24,6 +24,9 @@ The program reads only unread e-mails. After printing, they are marked as read.
   "filter": ["order"]
 }
 ```
+## MailPrinter in Action
+
+![Mailprinter](/assets/MailPrinter-example.jpg)
 
 ## Supported Languages
 The program supports the following languages: English and German
