@@ -1,8 +1,5 @@
-# MailPrinter
-Automatically prints e-mails (.NET)
-
-## Welcome
-Welcome to the official GitHub repo of MailPrinter. MailPrinter is a small program to print emails contained in the mail account on the local printer. The idea came from my 2nd best friend (Floris J.). Together we are working on this project.
+# Welcome to MailPrinter
+Welcome to the official GitHub repo of MailPrinter. MailPrinter is a small program (.NET) to print emails contained in the mail account on the local printer. The idea came from my 2nd best friend (Floris J.). Together we are working on this project.
 
 ## Info about MailPrinter
 The project was recently created by a new development of a website for a pizzeria. The system was built with Shopify and replaced an old website that was built on Contao.
@@ -13,7 +10,8 @@ Another point why the MailPrinter could be interesting is that orders in Shopify
 To install the MailPrinter we need to edit the config.json. First we need to set up the appropriate mail account. For this we need to enter the imap data and the email and password. The printer name must be set. This usually requires a little effort. The name can be found best in the device manager under Windows.
 Recommended is an interval of 60 seconds in which the e-mail tray is checked for new messages. We can also set up a filter to print only orders that contain certain words in the subject, e.g. "Order" or "Message from customer".
 
-The program supports the following languages: English and German
+### Nice to know
+The program reads only unread e-mails. After printing, they are marked as read.
 
 ```json
 {
@@ -27,6 +25,17 @@ The program supports the following languages: English and German
 }
 ```
 
+## Supported Languages
+The program supports the following languages: English and German
+
+## Use Case - Print Shopify Orders Automatically
+As mentioned, the program was developed to directly print orders received by Shopify. To set this up on Shopify we just need to set up an email recipient in the "Notifications" settings. To do this, go to Settings - Notifications - Order Notifications for Employees and add a recipient. Now enter an email that the MailPrinter can access. Now you have completed the setup.
+
+To test the process you can send a test notification directly to your email account via Shopify. Your order should now be recognized and printed by MailPrinter.
+
+## Questions or Bugfixes?
+Get in touch with us!
+
 ## Special Thanks to
-Idea by [@florijohn](https://github.com/florijohn)
-Based on [MailKit](https://github.com/jstedfast/MailKit) and [PrintHtml](https://github.com/kendallb/PrintHtml)
+- Idea by [@florijohn](https://github.com/florijohn)
+- Based on [MailKit](https://github.com/jstedfast/MailKit) and [PrintHtml](https://github.com/kendallb/PrintHtml)
