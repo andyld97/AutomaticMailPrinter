@@ -1,0 +1,9 @@
+﻿{
+  "imap_server": "imap.gmx.net",
+  "imap_port":  993,
+  "mail": "mail-an-schrottplatz@gmx.de",
+  "password": "C77n5D5w",
+  "printer_name": "Canon MB2700 series Printer",
+  "timer_interval_in_seconds": 60,
+  "filter":  ["Bestellung", "Neue Kundennachricht"]
+}
