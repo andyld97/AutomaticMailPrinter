@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="strAppTitle" xml:space="preserve">
-    <value>MailPrinter - Orders</value>
+    <value>AutomaticMailPrinter</value>
   </data>
   <data name="strConnectToMailServer" xml:space="preserve">
     <value>Connecting to the mail-server {0} ...</value>

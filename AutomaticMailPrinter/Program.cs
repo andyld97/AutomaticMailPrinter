@@ -8,7 +8,7 @@ using System.Reflection;
 using System.Text.Json;
 using System.Linq;
 
-namespace MailPrinter
+namespace AutomaticMailPrinter
 {
     internal class Program
     {
@@ -23,7 +23,7 @@ namespace MailPrinter
 
         static void Main(string[] args)
         {
-            Console.Title = MailPrinter.Properties.Resources.strAppTitle;
+            Console.Title = Properties.Resources.strAppTitle;
 
             try
             {
@@ -43,7 +43,7 @@ namespace MailPrinter
                 foreach (var word in filterProperty.EnumerateArray())
                     Filter[counter++] = word.GetString().ToLower();
 
-                Console.WriteLine(string.Format(MailPrinter.Properties.Resources.strConnectToMailServer, $"\"{ImapServer}:{ImapPort}\""));
+                Console.WriteLine(string.Format(Properties.Resources.strConnectToMailServer, $"\"{ImapServer}:{ImapPort}\""));
 
                 client = new ImapClient();
                 client.Connect(ImapServer, ImapPort, true);
@@ -58,7 +58,7 @@ namespace MailPrinter
             catch (Exception ex)
             {
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine($"{MailPrinter.Properties.Resources.strFailedToReadConfigFile}: {ex.Message}");
+                Console.WriteLine($"{Properties.Resources.strFailedToReadConfigFile}: {ex.Message}");
                 Console.ResetColor();
             }
 
@@ -69,7 +69,7 @@ namespace MailPrinter
         {
             try
             {
-                Console.WriteLine(MailPrinter.Properties.Resources.strLookingForUnreadMails);
+                Console.WriteLine(Properties.Resources.strLookingForUnreadMails);
                 bool found = false;
 
                 if (!client.IsAuthenticated || !client.IsConnected)

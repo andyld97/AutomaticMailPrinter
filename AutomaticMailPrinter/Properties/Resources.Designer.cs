@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace MailPrinter.Properties {
+namespace AutomaticMailPrinter.Properties {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace MailPrinter.Properties {
         public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("MailPrinter.Properties.Resources", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("AutomaticMailPrinter.Properties.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -61,7 +61,7 @@ namespace MailPrinter.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to MailPrinter - Orders.
+        ///   Looks up a localized string similar to AutomaticMailPrinter.
         /// </summary>
         public static string strAppTitle {
             get {
