@@ -154,6 +154,7 @@
     <Content Include="PrintHtml\ssleay32.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Setup.iss" />
     <None Include="Sounds\sound.wav">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
