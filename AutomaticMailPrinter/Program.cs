@@ -23,7 +23,8 @@ namespace AutomaticMailPrinter
 
         static void Main(string[] args)
         {
-            Console.Title = Properties.Resources.strAppTitle;
+            // This doesn't work without a console
+            // Console.Title = Properties.Resources.strAppTitle;
 
             try
             {
@@ -62,7 +63,10 @@ namespace AutomaticMailPrinter
                 Console.ResetColor();
             }
 
-            Console.ReadLine();
+            while (true)
+            {
+                System.Threading.Thread.Sleep(500);
+            }
         }
 
         private static void Timer_Tick(object state)
