@@ -159,4 +159,10 @@
   <data name="strPrintMessage" xml:space="preserve">
     <value>Drucken von E-Mail "{0}" an {1} ...</value>
   </data>
+  <data name="strError" xml:space="preserve">
+    <value>Fehler!</value>
+  </data>
+  <data name="strInstanceAlreadyRunning" xml:space="preserve">
+    <value>Eine Instanz läuft bereits!</value>
+  </data>
 </root>

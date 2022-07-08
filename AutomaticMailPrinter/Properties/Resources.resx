@@ -159,4 +159,10 @@
   <data name="strFailedToPrintMail" xml:space="preserve">
     <value>Failed to print mail</value>
   </data>
+  <data name="strInstanceAlreadyRunning" xml:space="preserve">
+    <value>Instance already running!</value>
+  </data>
+  <data name="strError" xml:space="preserve">
+    <value>Error!</value>
+  </data>
 </root>

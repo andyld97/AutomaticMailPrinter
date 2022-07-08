@@ -7,12 +7,16 @@ using System.IO;
 using System.Reflection;
 using System.Text.Json;
 using System.Linq;
+using System.Threading;
+using AutomaticMailPrinter.Properties;
+using System.Windows.Forms;
 
 namespace AutomaticMailPrinter
 {
     internal class Program
     {
         private static System.Threading.Timer timer;
+        private static readonly Mutex AppMutex = new Mutex(false, "c75adf4e-765c-4529-bf7a-90dd76cd386a");
 
         private static string ImapServer, MailAddress, Password, PrinterName;
         private static string[] Filter = new string[0];
@@ -23,8 +27,11 @@ namespace AutomaticMailPrinter
 
         static void Main(string[] args)
         {
-            // This doesn't work without a console
-            // Console.Title = Properties.Resources.strAppTitle;
+            if (!AppMutex.WaitOne(TimeSpan.FromSeconds(1), false))
+            {
+                MessageBox.Show(Properties.Resources.strInstanceAlreadyRunning, Properties.Resources.strError, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
 
             try
             {
@@ -67,6 +74,8 @@ namespace AutomaticMailPrinter
             {
                 System.Threading.Thread.Sleep(500);
             }
+
+            AppMutex.ReleaseMutex();
         }
 
         private static void Timer_Tick(object state)
