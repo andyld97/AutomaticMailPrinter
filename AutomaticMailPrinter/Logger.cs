@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Globalization;
+using System.Net.Http;
+using System.Threading.Tasks;
+using System.Web;
 
 namespace AutomaticMailPrinter
 {
@@ -7,6 +10,7 @@ namespace AutomaticMailPrinter
     {
         public static readonly string LOG_PATH = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "AutomaticMailprinterLog.log");
         private readonly static LogType CurrentLogLevel = LogType.Info | LogType.Warning | LogType.Error;
+        private static readonly HttpClient httpClient = new HttpClient();
 
         public static void LogDebug(string message = "", Exception e = null)
         {
@@ -57,6 +61,9 @@ namespace AutomaticMailPrinter
             string logMessage = $"{now.ToString(Properties.Resources.strLogFormat, CultureInfo.InvariantCulture)} [{type}]: {logContent}\n";
             System.Diagnostics.Debug.WriteLine(logMessage);
 
+            if (sendWebHook)
+                Task.Run(async () => await NotifyWebHookAsync($"[{type} @ {Environment.MachineName}]: {logContent}"));
+
             // Append message to file
             try
             {
@@ -73,6 +80,27 @@ namespace AutomaticMailPrinter
             catch
             {
                 // If this fails ... UF ...
+            }
+        }
+
+        private static async Task NotifyWebHookAsync(string message)
+        {
+            if (string.IsNullOrEmpty(Program.WebHookUrl))
+                return;
+
+            try
+            {
+                string url = Program.WebHookUrl;
+                if (url.EndsWith("/"))
+                    url = url.Substring(0, url.Length - 1);
+                url += $"{HttpUtility.UrlEncode(message)}";
+
+                await httpClient.GetAsync(url);
+            }
+            catch (Exception ex)
+            {
+                // Calling Logger.LogWarning will not work here (because this may result in an endless result)
+                Logger.Log($"Failed to notify webhook", ex, LogType.Warning, false);
             }
         }
 

@@ -18,6 +18,7 @@ namespace AutomaticMailPrinter
         private static readonly Mutex AppMutex = new Mutex(false, "c75adf4e-765c-4529-bf7a-90dd76cd386a");
 
         private static string ImapServer, MailAddress, Password, PrinterName;
+        public static string WebHookUrl { get; private set; }
         private static string[] Filter = new string[0];
         private static int ImapPort;
 
@@ -42,6 +43,13 @@ namespace AutomaticMailPrinter
                 MailAddress = configDocument.RootElement.GetProperty("mail").GetString();
                 Password = configDocument.RootElement.GetProperty("password").GetString();
                 PrinterName = configDocument.RootElement.GetProperty("printer_name").GetString();
+
+                try
+                {
+                    // Can be empty or even may not existing ...
+                    WebHookUrl = configDocument.RootElement.GetProperty("webhook_url").GetString();
+                }
+                catch { }
                 int intervalInSecods = configDocument.RootElement.GetProperty("timer_interval_in_seconds").GetInt32();
                 
                 var filterProperty = configDocument.RootElement.GetProperty("filter");
