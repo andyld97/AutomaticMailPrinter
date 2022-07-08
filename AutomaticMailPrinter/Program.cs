@@ -7,14 +7,18 @@ using System.IO;
 using System.Reflection;
 using System.Text.Json;
 using System.Linq;
+using System.Threading;
+using System.Windows.Forms;
 
 namespace AutomaticMailPrinter
 {
     internal class Program
     {
         private static System.Threading.Timer timer;
+        private static readonly Mutex AppMutex = new Mutex(false, "c75adf4e-765c-4529-bf7a-90dd76cd386a");
 
         private static string ImapServer, MailAddress, Password, PrinterName;
+        public static string WebHookUrl { get; private set; }
         private static string[] Filter = new string[0];
         private static int ImapPort;
 
@@ -23,7 +27,11 @@ namespace AutomaticMailPrinter
 
         static void Main(string[] args)
         {
-            Console.Title = Properties.Resources.strAppTitle;
+            if (!AppMutex.WaitOne(TimeSpan.FromSeconds(1), false))
+            {
+                MessageBox.Show(Properties.Resources.strInstanceAlreadyRunning, Properties.Resources.strError, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
 
             try
             {
@@ -35,6 +43,13 @@ namespace AutomaticMailPrinter
                 MailAddress = configDocument.RootElement.GetProperty("mail").GetString();
                 Password = configDocument.RootElement.GetProperty("password").GetString();
                 PrinterName = configDocument.RootElement.GetProperty("printer_name").GetString();
+
+                try
+                {
+                    // Can be empty or even may not existing ...
+                    WebHookUrl = configDocument.RootElement.GetProperty("webhook_url").GetString();
+                }
+                catch { }
                 int intervalInSecods = configDocument.RootElement.GetProperty("timer_interval_in_seconds").GetInt32();
                 
                 var filterProperty = configDocument.RootElement.GetProperty("filter");
@@ -42,8 +57,8 @@ namespace AutomaticMailPrinter
                 Filter = new string[filterProperty.GetArrayLength()];
                 foreach (var word in filterProperty.EnumerateArray())
                     Filter[counter++] = word.GetString().ToLower();
-
-                Console.WriteLine(string.Format(Properties.Resources.strConnectToMailServer, $"\"{ImapServer}:{ImapPort}\""));
+                
+                Logger.LogInfo(string.Format(Properties.Resources.strConnectToMailServer, $"\"{ImapServer}:{ImapPort}\""));
 
                 client = new ImapClient();
                 client.Connect(ImapServer, ImapPort, true);
@@ -57,26 +72,27 @@ namespace AutomaticMailPrinter
             }
             catch (Exception ex)
             {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine($"{Properties.Resources.strFailedToReadConfigFile}: {ex.Message}");
-                Console.ResetColor();
+                Logger.LogError(Properties.Resources.strFailedToReadConfigFile, ex);
             }
 
-            Console.ReadLine();
+            while (true)
+            {
+                System.Threading.Thread.Sleep(500);
+            }
+
+            AppMutex.ReleaseMutex();
         }
 
         private static void Timer_Tick(object state)
         {
             try
             {
-                Console.WriteLine(Properties.Resources.strLookingForUnreadMails);
+                Logger.LogInfo(Properties.Resources.strLookingForUnreadMails);
                 bool found = false;
 
                 if (!client.IsAuthenticated || !client.IsConnected)
                 {
-                    Console.ForegroundColor = ConsoleColor.DarkYellow;
-                    Console.WriteLine(Properties.Resources.strMailClientIsNotConnectedAnymore);
-                    Console.ResetColor();
+                    Logger.LogWarning(Properties.Resources.strMailClientIsNotConnectedAnymore);
 
                     try
                     {
@@ -87,15 +103,11 @@ namespace AutomaticMailPrinter
                         // The Inbox folder is always available on all IMAP servers...
                         inbox = client.Inbox;
 
-                        Console.ForegroundColor = ConsoleColor.Green;
-                        Console.WriteLine(Properties.Resources.strConnectionEstablishedSuccess);
-                        Console.ResetColor();
+                        Logger.LogInfo(Properties.Resources.strConnectionEstablishedSuccess, sendWebHook: true);
                     }
                     catch (Exception ex)
                     {
-                        Console.ForegroundColor = ConsoleColor.Red;
-                        Console.WriteLine($"{Properties.Resources.strFailedToConnect}: {ex.Message}!");
-                        Console.ResetColor();
+                        Logger.LogError(Properties.Resources.strFailedToConnect, ex);
                         return;
                     }
 
@@ -111,17 +123,13 @@ namespace AutomaticMailPrinter
                     {
                         // Print text
                         Console.ForegroundColor = ConsoleColor.Green;
-                        Console.WriteLine($"{string.Format(Properties.Resources.strFoundUnreadMail, Filter.Where(f => subject.Contains(f)).FirstOrDefault())} {message.Subject}");
-
-                        Console.ForegroundColor = ConsoleColor.DarkYellow;
-                        Console.WriteLine(Properties.Resources.strMarkMailAsRead);
+                        Logger.LogInfo($"{string.Format(Properties.Resources.strFoundUnreadMail, Filter.Where(f => subject.Contains(f)).FirstOrDefault())} {message.Subject}");
+                        Logger.LogInfo(Properties.Resources.strMarkMailAsRead);
 
                         // Mark mail as read
                         inbox.SetFlags(uid, MessageFlags.Seen, true);
 
-                        Console.WriteLine(string.Format(Properties.Resources.strPrintMessage, message.Subject, PrinterName));
-                        Console.ResetColor();
-
+                        Logger.LogInfo(string.Format(Properties.Resources.strPrintMessage, message.Subject, PrinterName));
                         PrintHtmlPage(message.HtmlBody);
                         found = true;
 
@@ -130,20 +138,14 @@ namespace AutomaticMailPrinter
                 }
 
                 if (!found)
-                {
-                    Console.ForegroundColor = ConsoleColor.Gray;
-                    Console.WriteLine(Properties.Resources.strNoUnreadMailFound);
-                    Console.ResetColor();
-                }
+                    Logger.LogInfo(Properties.Resources.strNoUnreadMailFound);
 
                 // Do not disconnect here!
                 // client.Disconnect(true);
             }
             catch (Exception ex)
             {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine($"{Properties.Resources.strFailedToRecieveMails}: {ex.Message}");
-                Console.ResetColor();
+                Logger.LogError(Properties.Resources.strFailedToRecieveMails, ex);
             }
         }
         
@@ -157,9 +159,7 @@ namespace AutomaticMailPrinter
             }
             catch (Exception ex)
             {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine($"{Properties.Resources.strFailedToPlaySound}: {ex.Message}");
-                Console.ResetColor();
+                Logger.LogError(Properties.Resources.strFailedToPlaySound, ex);
             }
         }
 
@@ -167,15 +167,13 @@ namespace AutomaticMailPrinter
         {
             try
             {
-                string path = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "temp.html");
+                string path = System.IO.Path.GetTempFileName();
                 System.IO.File.WriteAllText(path, htmlContent);
                 PrintHtmlPages(PrinterName, path);
             }
             catch (Exception ex)
             {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine($"{Properties.Resources.strFailedToPrintMail}: {ex.Message}");
-                Console.ResetColor();
+                Logger.LogError(Properties.Resources.strFailedToPrintMail, ex);
             }
         }
 

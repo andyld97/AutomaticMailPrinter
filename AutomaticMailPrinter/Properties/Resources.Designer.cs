@@ -88,6 +88,15 @@ namespace AutomaticMailPrinter.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error!.
+        /// </summary>
+        public static string strError {
+            get {
+                return ResourceManager.GetString("strError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Connection failed.
         /// </summary>
         public static string strFailedToConnect {
@@ -138,6 +147,24 @@ namespace AutomaticMailPrinter.Properties {
         public static string strFoundUnreadMail {
             get {
                 return ResourceManager.GetString("strFoundUnreadMail", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Instance already running!.
+        /// </summary>
+        public static string strInstanceAlreadyRunning {
+            get {
+                return ResourceManager.GetString("strInstanceAlreadyRunning", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MM/dd/yyyy HH:mm:ss.fff.
+        /// </summary>
+        public static string strLogFormat {
+            get {
+                return ResourceManager.GetString("strLogFormat", resourceCulture);
             }
         }
         
