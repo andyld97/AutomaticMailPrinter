@@ -171,7 +171,7 @@ namespace AutomaticMailPrinter
         {
             try
             {
-                string path = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "temp.html");
+                string path = System.IO.Path.GetTempFileName();
                 System.IO.File.WriteAllText(path, htmlContent);
                 PrintHtmlPages(PrinterName, path);
             }
