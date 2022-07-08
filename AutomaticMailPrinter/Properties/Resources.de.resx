@@ -165,4 +165,7 @@
   <data name="strInstanceAlreadyRunning" xml:space="preserve">
     <value>Eine Instanz läuft bereits!</value>
   </data>
+  <data name="strLogFormat" xml:space="preserve">
+    <value>dd.MM.yyyy HH:mm:ss.fff</value>
+  </data>
 </root>

@@ -54,7 +54,7 @@ namespace AutomaticMailPrinter
                     logContent += $" [Exception]: {e}";
             }
 
-            string logMessage = $"{now.ToString("dd.MM.yyyy HH:mm:ss.fff", CultureInfo.InvariantCulture)} [{type}]: {logContent}\n";
+            string logMessage = $"{now.ToString(Properties.Resources.strLogFormat, CultureInfo.InvariantCulture)} [{type}]: {logContent}\n";
             System.Diagnostics.Debug.WriteLine(logMessage);
 
             // Append message to file

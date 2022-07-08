@@ -160,6 +160,15 @@ namespace AutomaticMailPrinter.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to MM/dd/yyyy HH:mm:ss.fff.
+        /// </summary>
+        public static string strLogFormat {
+            get {
+                return ResourceManager.GetString("strLogFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Searching for unread mails ....
         /// </summary>
         public static string strLookingForUnreadMails {

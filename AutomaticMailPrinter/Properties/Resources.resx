@@ -165,4 +165,7 @@
   <data name="strError" xml:space="preserve">
     <value>Error!</value>
   </data>
+  <data name="strLogFormat" xml:space="preserve">
+    <value>MM/dd/yyyy HH:mm:ss.fff</value>
+  </data>
 </root>
