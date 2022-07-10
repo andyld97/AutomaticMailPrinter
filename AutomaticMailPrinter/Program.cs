@@ -25,6 +25,8 @@ namespace AutomaticMailPrinter
         private static ImapClient client = new ImapClient();
         private static IMailFolder inbox;
 
+        private static object sync = new object();
+
         static void Main(string[] args)
         {
             if (!AppMutex.WaitOne(TimeSpan.FromSeconds(1), false))
@@ -87,68 +89,70 @@ namespace AutomaticMailPrinter
         {
             try
             {
-                Logger.LogInfo(Properties.Resources.strLookingForUnreadMails);
-                bool found = false;
-
-                if (!client.IsAuthenticated || !client.IsConnected)
+                lock (sync)
                 {
-                    Logger.LogWarning(Properties.Resources.strMailClientIsNotConnectedAnymore);
+                    Logger.LogInfo(Properties.Resources.strLookingForUnreadMails);
+                    bool found = false;
 
-                    try
+                    if (!client.IsAuthenticated || !client.IsConnected)
                     {
-                        client = new ImapClient();
-                        client.Connect(ImapServer, ImapPort, true);
-                        client.Authenticate(MailAddress, Password);
+                        Logger.LogWarning(Properties.Resources.strMailClientIsNotConnectedAnymore);
 
-                        // The Inbox folder is always available on all IMAP servers...
-                        inbox = client.Inbox;
+                        try
+                        {
+                            client = new ImapClient();
+                            client.Connect(ImapServer, ImapPort, true);
+                            client.Authenticate(MailAddress, Password);
 
-                        Logger.LogInfo(Properties.Resources.strConnectionEstablishedSuccess, sendWebHook: true);
+                            // The Inbox folder is always available on all IMAP servers...
+                            inbox = client.Inbox;
+
+                            Logger.LogInfo(Properties.Resources.strConnectionEstablishedSuccess, sendWebHook: true);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.LogError(Properties.Resources.strFailedToConnect, ex);
+                            return;
+                        }
+
                     }
-                    catch (Exception ex)
+
+                    inbox.Open(FolderAccess.ReadWrite);
+
+                    foreach (var uid in inbox.Search(SearchQuery.NotSeen))
                     {
-                        Logger.LogError(Properties.Resources.strFailedToConnect, ex);
-                        return;
+                        var message = inbox.GetMessage(uid);
+                        string subject = message.Subject.ToLower();
+                        if (Filter.Any(f => subject.Contains(f)))
+                        {
+                            // Print text
+                            Console.ForegroundColor = ConsoleColor.Green;
+                            Logger.LogInfo($"{string.Format(Properties.Resources.strFoundUnreadMail, Filter.Where(f => subject.Contains(f)).FirstOrDefault())} {message.Subject}");
+                            Logger.LogInfo(Properties.Resources.strMarkMailAsRead);
+
+                            // Mark mail as read
+                            inbox.SetFlags(uid, MessageFlags.Seen, true);
+
+                            Logger.LogInfo(string.Format(Properties.Resources.strPrintMessage, message.Subject, PrinterName));
+                            PrintHtmlPage(message.HtmlBody);
+                            found = true;
+
+                            PlaySound();
+                        }
                     }
 
+                    if (!found)
+                        Logger.LogInfo(Properties.Resources.strNoUnreadMailFound);
+
+                    // Do not disconnect here!
+                    // client.Disconnect(true);
                 }
-
-                inbox.Open(FolderAccess.ReadWrite);
-
-                foreach (var uid in inbox.Search(SearchQuery.NotSeen))
-                {
-                    var message = inbox.GetMessage(uid);
-                    string subject = message.Subject.ToLower();
-                    if (Filter.Any(f => subject.Contains(f)))
-                    {
-                        // Print text
-                        Console.ForegroundColor = ConsoleColor.Green;
-                        Logger.LogInfo($"{string.Format(Properties.Resources.strFoundUnreadMail, Filter.Where(f => subject.Contains(f)).FirstOrDefault())} {message.Subject}");
-                        Logger.LogInfo(Properties.Resources.strMarkMailAsRead);
-
-                        // Mark mail as read
-                        inbox.SetFlags(uid, MessageFlags.Seen, true);
-
-                        Logger.LogInfo(string.Format(Properties.Resources.strPrintMessage, message.Subject, PrinterName));
-                        PrintHtmlPage(message.HtmlBody);
-                        found = true;
-
-                        PlaySound();
-                    }
-                }
-
-                if (!found)
-                    Logger.LogInfo(Properties.Resources.strNoUnreadMailFound);
-
-                // Do not disconnect here!
-                // client.Disconnect(true);
             }
             catch (Exception ex)
             {
                 Logger.LogError(Properties.Resources.strFailedToRecieveMails, ex);
             }
-        }
-        
+        }        
 
         public static void PlaySound()
         {
