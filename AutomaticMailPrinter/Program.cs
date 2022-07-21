@@ -35,6 +35,8 @@ namespace AutomaticMailPrinter
                 return;
             }
 
+            System.AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+
             try
             {
                 string configPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "config.json");
@@ -83,6 +85,16 @@ namespace AutomaticMailPrinter
             }
 
             AppMutex.ReleaseMutex();
+        }
+
+        private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            if (e.ExceptionObject is Exception ex)
+                Logger.LogError("Unhandled Exception recieved!", ex);
+            else if (e.ExceptionObject != null)
+                Logger.LogError($"Unhandled Exception recieved: e.ExceptionObject.ToString()");
+            else
+                Logger.LogError("Unhandled Exception but exception object is empty :(");
         }
 
         private static void Timer_Tick(object state)
