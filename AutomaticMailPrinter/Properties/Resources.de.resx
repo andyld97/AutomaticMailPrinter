@@ -168,4 +168,16 @@
   <data name="strLogFormat" xml:space="preserve">
     <value>dd.MM.yyyy HH:mm:ss.fff</value>
   </data>
+  <data name="strDeleteOldMessagesFromInBox" xml:space="preserve">
+    <value>Löschte alte Mails aus dem Posteingang ...</value>
+  </data>
+  <data name="strExpungeMails" xml:space="preserve">
+    <value>Lösche alle markierten Mails aus dem Posteingang (Expunge) ...</value>
+  </data>
+  <data name="strMarkMailAsDeleted" xml:space="preserve">
+    <value>Markiere Mail als gelöscht ...</value>
+  </data>
+  <data name="strDeleteNMessagesFromInBox" xml:space="preserve">
+    <value>Es wurden {0} Mails aus dem Posteingang gelöscht!</value>
+  </data>
 </root>

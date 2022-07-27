@@ -88,11 +88,38 @@ namespace AutomaticMailPrinter.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Deleted {0} messages from inbox!.
+        /// </summary>
+        public static string strDeleteNMessagesFromInBox {
+            get {
+                return ResourceManager.GetString("strDeleteNMessagesFromInBox", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Delete old messages from inbox ....
+        /// </summary>
+        public static string strDeleteOldMessagesFromInBox {
+            get {
+                return ResourceManager.GetString("strDeleteOldMessagesFromInBox", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error!.
         /// </summary>
         public static string strError {
             get {
                 return ResourceManager.GetString("strError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Flush e-mails marked as deleted (Expunge) ....
+        /// </summary>
+        public static string strExpungeMails {
+            get {
+                return ResourceManager.GetString("strExpungeMails", resourceCulture);
             }
         }
         
@@ -183,6 +210,15 @@ namespace AutomaticMailPrinter.Properties {
         public static string strMailClientIsNotConnectedAnymore {
             get {
                 return ResourceManager.GetString("strMailClientIsNotConnectedAnymore", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Mark mail as deleted ....
+        /// </summary>
+        public static string strMarkMailAsDeleted {
+            get {
+                return ResourceManager.GetString("strMarkMailAsDeleted", resourceCulture);
             }
         }
         

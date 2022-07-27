@@ -168,4 +168,16 @@
   <data name="strLogFormat" xml:space="preserve">
     <value>MM/dd/yyyy HH:mm:ss.fff</value>
   </data>
+  <data name="strMarkMailAsDeleted" xml:space="preserve">
+    <value>Mark mail as deleted ...</value>
+  </data>
+  <data name="strExpungeMails" xml:space="preserve">
+    <value>Flush e-mails marked as deleted (Expunge) ...</value>
+  </data>
+  <data name="strDeleteOldMessagesFromInBox" xml:space="preserve">
+    <value>Delete old messages from inbox ...</value>
+  </data>
+  <data name="strDeleteNMessagesFromInBox" xml:space="preserve">
+    <value>Deleted {0} messages from inbox!</value>
+  </data>
 </root>

@@ -55,13 +55,13 @@ namespace AutomaticMailPrinter
                 }
                 catch { }
                 int intervalInSecods = configDocument.RootElement.GetProperty("timer_interval_in_seconds").GetInt32();
-                
+
                 var filterProperty = configDocument.RootElement.GetProperty("filter");
                 int counter = 0;
                 Filter = new string[filterProperty.GetArrayLength()];
                 foreach (var word in filterProperty.EnumerateArray())
                     Filter[counter++] = word.GetString().ToLower();
-                
+
                 Logger.LogInfo(string.Format(Properties.Resources.strConnectToMailServer, $"\"{ImapServer}:{ImapPort}\""));
 
                 client = new ImapClient();
@@ -72,6 +72,25 @@ namespace AutomaticMailPrinter
                 inbox = client.Inbox;
                 inbox.Open(FolderAccess.ReadWrite);
 
+                // Clear all old mails
+                Logger.LogInfo(Properties.Resources.strDeleteOldMessagesFromInBox, sendWebHook: true);
+                int count = 0;
+                foreach (var uid in inbox.Search(SearchQuery.Seen))
+                {
+                    var message = inbox.GetMessage(uid);
+                    string subject = message.Subject.ToLower();
+
+                    if (Filter.Any(f => subject.Contains(f)))
+                    {
+                        // Delete mail https://stackoverflow.com/a/24204804/6237448
+                        inbox.SetFlags(uid, MessageFlags.Deleted, true);
+                        count++;
+                    }
+                }
+                if (count > 0)
+                    inbox.Expunge();
+
+                Logger.LogInfo(string.Format(Properties.Resources.strDeleteNMessagesFromInBox, count), sendWebHook: true);
                 timer = new System.Threading.Timer(Timer_Tick, null, 0, intervalInSecods * 1000);
             }
             catch (Exception ex)
@@ -92,7 +111,7 @@ namespace AutomaticMailPrinter
             if (e.ExceptionObject is Exception ex)
                 Logger.LogError("Unhandled Exception recieved!", ex);
             else if (e.ExceptionObject != null)
-                Logger.LogError($"Unhandled Exception recieved: e.ExceptionObject.ToString()");
+                Logger.LogError($"Unhandled Exception recieved: {e.ExceptionObject}");
             else
                 Logger.LogError("Unhandled Exception but exception object is empty :(");
         }
@@ -140,13 +159,15 @@ namespace AutomaticMailPrinter
                             // Print text
                             Console.ForegroundColor = ConsoleColor.Green;
                             Logger.LogInfo($"{string.Format(Properties.Resources.strFoundUnreadMail, Filter.Where(f => subject.Contains(f)).FirstOrDefault())} {message.Subject}");
-                            Logger.LogInfo(Properties.Resources.strMarkMailAsRead);
 
-                            // Mark mail as read
-                            inbox.SetFlags(uid, MessageFlags.Seen, true);
-
+                            // Print mail
                             Logger.LogInfo(string.Format(Properties.Resources.strPrintMessage, message.Subject, PrinterName));
                             PrintHtmlPage(message.HtmlBody);
+
+                            // Delete mail https://stackoverflow.com/a/24204804/6237448
+                            Logger.LogInfo(Properties.Resources.strMarkMailAsDeleted);                     
+                            inbox.SetFlags(uid, MessageFlags.Deleted, true);
+
                             found = true;
 
                             PlaySound();
@@ -155,6 +176,11 @@ namespace AutomaticMailPrinter
 
                     if (!found)
                         Logger.LogInfo(Properties.Resources.strNoUnreadMailFound);
+                    else
+                    {
+                        Logger.LogInfo(Properties.Resources.strExpungeMails);
+                        inbox.Expunge();
+                    }
 
                     // Do not disconnect here!
                     // client.Disconnect(true);
