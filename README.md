@@ -11,7 +11,7 @@ To install the Automatic Mail Printer we need to edit the config.json. First we 
 Recommended is an interval of 60 seconds in which the e-mail tray is checked for new messages. We can also set up a filter to print only orders that contain certain words in the subject, e.g. "Order" or "Message from customer".
 
 ### Nice to know
-The program reads only unread e-mails. After printing, they are marked as read.
+The program reads only unread e-mails. After printing, they are marked as deleted. In the beginning (at startup) the program deletes all old messages which fit to the appropirate filter (be careful!)
 
 ```json
 {
