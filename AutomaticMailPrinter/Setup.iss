@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "AutomaticMailPrinter"
-#define MyAppVersion "1.0"
+#define MyAppVersion "1.0.2"
 #define MyAppExeName "AutomaticMailPrinter.exe"
 
 [Setup]
@@ -19,7 +19,8 @@ PrivilegesRequired=lowest
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
-OutputDir=bin\Debug\
+DisableWelcomePage=no
+OutputDir=bin\Release\
 OutputBaseFilename=AutomaticMailPrinterSetup
 SetupIconFile=icon.ico
 
@@ -34,40 +35,33 @@ Name: "StartMenuEntry" ; Description: "Start my app when Windows starts" ; Group
 
 
 [Files]
-Source: "bin\Debug\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "bin\Debug\BouncyCastle.Crypto.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "bin\Debug\BouncyCastle.Crypto.xml"; DestDir: "{app}"; Flags: ignoreversion
-Source: "bin\Debug\MailKit.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "bin\Debug\MailKit.pdb"; DestDir: "{app}"; Flags: ignoreversion
-Source: "bin\Debug\MailKit.xml"; DestDir: "{app}"; Flags: ignoreversion
-Source: "bin\Debug\AutomaticMailPrinter.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "bin\Debug\AutomaticMailPrinter.exe.config"; DestDir: "{app}"; Flags: ignoreversion
-Source: "bin\Debug\AutomaticMailPrinter.pdb"; DestDir: "{app}"; Flags: ignoreversion
-Source: "bin\Debug\Microsoft.Bcl.AsyncInterfaces.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "bin\Debug\Microsoft.Bcl.AsyncInterfaces.xml"; DestDir: "{app}"; Flags: ignoreversion
-Source: "bin\Debug\MimeKit.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "bin\Debug\MimeKit.pdb"; DestDir: "{app}"; Flags: ignoreversion
-Source: "bin\Debug\MimeKit.xml"; DestDir: "{app}"; Flags: ignoreversion
-Source: "bin\Debug\System.Buffers.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "bin\Debug\System.Buffers.xml"; DestDir: "{app}"; Flags: ignoreversion
-Source: "bin\Debug\System.Memory.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "bin\Debug\System.Memory.xml"; DestDir: "{app}"; Flags: ignoreversion
-Source: "bin\Debug\System.Numerics.Vectors.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "bin\Debug\System.Numerics.Vectors.xml"; DestDir: "{app}"; Flags: ignoreversion
-Source: "bin\Debug\System.Runtime.CompilerServices.Unsafe.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "bin\Debug\System.Runtime.CompilerServices.Unsafe.xml"; DestDir: "{app}"; Flags: ignoreversion
-Source: "bin\Debug\System.Text.Encoding.CodePages.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "bin\Debug\System.Text.Encodings.Web.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "bin\Debug\System.Text.Encodings.Web.xml"; DestDir: "{app}"; Flags: ignoreversion
-Source: "bin\Debug\System.Text.Json.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "bin\Debug\System.Text.Json.xml"; DestDir: "{app}"; Flags: ignoreversion
-Source: "bin\Debug\System.Threading.Tasks.Extensions.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "bin\Debug\System.Threading.Tasks.Extensions.xml"; DestDir: "{app}"; Flags: ignoreversion
-Source: "bin\Debug\System.ValueTuple.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "bin\Debug\System.ValueTuple.xml"; DestDir: "{app}"; Flags: ignoreversion
-Source: "bin\Debug\de\*"; DestDir: "{app}\de"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "bin\Debug\Sounds\*"; DestDir: "{app}\Sounds"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "bin\Debug\PrintHtml\*"; DestDir: "{app}\PrintHtml"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "bin\Release\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "bin\Release\BouncyCastle.Crypto.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "bin\Release\BouncyCastle.Crypto.xml"; DestDir: "{app}"; Flags: ignoreversion
+Source: "bin\Release\MailKit.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "bin\Release\AutomaticMailPrinter.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "bin\Release\AutomaticMailPrinter.exe.config"; DestDir: "{app}"; Flags: ignoreversion
+Source: "bin\Release\Microsoft.Bcl.AsyncInterfaces.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "bin\Release\Microsoft.Bcl.AsyncInterfaces.xml"; DestDir: "{app}"; Flags: ignoreversion
+Source: "bin\Release\MimeKit.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "bin\Release\System.Buffers.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "bin\Release\System.Buffers.xml"; DestDir: "{app}"; Flags: ignoreversion
+Source: "bin\Release\System.Memory.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "bin\Release\System.Memory.xml"; DestDir: "{app}"; Flags: ignoreversion
+Source: "bin\Release\System.Numerics.Vectors.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "bin\Release\System.Numerics.Vectors.xml"; DestDir: "{app}"; Flags: ignoreversion
+Source: "bin\Release\System.Runtime.CompilerServices.Unsafe.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "bin\Release\System.Runtime.CompilerServices.Unsafe.xml"; DestDir: "{app}"; Flags: ignoreversion
+Source: "bin\Release\System.Text.Encoding.CodePages.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "bin\Release\System.Text.Encodings.Web.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "bin\Release\System.Text.Json.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "bin\Release\System.Text.Json.xml"; DestDir: "{app}"; Flags: ignoreversion
+Source: "bin\Release\System.Threading.Tasks.Extensions.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "bin\Release\System.Threading.Tasks.Extensions.xml"; DestDir: "{app}"; Flags: ignoreversion
+Source: "bin\Release\System.ValueTuple.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "bin\Release\de\*"; DestDir: "{app}\de"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "bin\Release\Sounds\*"; DestDir: "{app}\Sounds"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "bin\Release\PrintHtml\*"; DestDir: "{app}\PrintHtml"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]

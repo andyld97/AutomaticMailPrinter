@@ -36,7 +36,7 @@ namespace AutomaticMailPrinter
             }
 
             System.AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
-
+            int intervalInSecods = 60;
             try
             {
                 string configPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "config.json");
@@ -54,14 +54,22 @@ namespace AutomaticMailPrinter
                     WebHookUrl = configDocument.RootElement.GetProperty("webhook_url").GetString();
                 }
                 catch { }
-                int intervalInSecods = configDocument.RootElement.GetProperty("timer_interval_in_seconds").GetInt32();
+
+                intervalInSecods = configDocument.RootElement.GetProperty("timer_interval_in_seconds").GetInt32();
 
                 var filterProperty = configDocument.RootElement.GetProperty("filter");
                 int counter = 0;
                 Filter = new string[filterProperty.GetArrayLength()];
                 foreach (var word in filterProperty.EnumerateArray())
                     Filter[counter++] = word.GetString().ToLower();
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(Properties.Resources.strFailedToReadConfigFile, ex);
+            }
 
+            try
+            {
                 Logger.LogInfo(string.Format(Properties.Resources.strConnectToMailServer, $"\"{ImapServer}:{ImapPort}\""));
 
                 client = new ImapClient();
@@ -91,12 +99,16 @@ namespace AutomaticMailPrinter
                     inbox.Expunge();
 
                 Logger.LogInfo(string.Format(Properties.Resources.strDeleteNMessagesFromInBox, count), sendWebHook: true);
-                timer = new System.Threading.Timer(Timer_Tick, null, 0, intervalInSecods * 1000);
+
             }
             catch (Exception ex)
             {
-                Logger.LogError(Properties.Resources.strFailedToReadConfigFile, ex);
+                Logger.LogError(Properties.Resources.strFailedToRecieveMails, ex);
             }
+            finally
+            {
+                timer = new System.Threading.Timer(Timer_Tick, null, 0, intervalInSecods * 1000);
+            }    
 
             while (true)
             {
