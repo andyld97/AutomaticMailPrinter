@@ -18,6 +18,7 @@ namespace AutomaticMailPrinter
         private static readonly Mutex AppMutex = new Mutex(false, "c75adf4e-765c-4529-bf7a-90dd76cd386a");
 
         private static string ImapServer, MailAddress, Password, PrinterName;
+
         public static string WebHookUrl { get; private set; }
         private static string[] Filter = new string[0];
         private static int ImapPort;
@@ -170,10 +171,11 @@ namespace AutomaticMailPrinter
                         {
                             // Print text
                             Console.ForegroundColor = ConsoleColor.Green;
-                            Logger.LogInfo($"{string.Format(Properties.Resources.strFoundUnreadMail, Filter.Where(f => subject.Contains(f)).FirstOrDefault())} {message.Subject}");
+                            Logger.LogInfo($"{string.Format(Properties.Resources.strFoundUnreadMail, Filter.FirstOrDefault(f => subject.Contains(f)))} {message.Subject}");
 
                             // Print mail
                             Logger.LogInfo(string.Format(Properties.Resources.strPrintMessage, message.Subject, PrinterName));
+
                             PrintHtmlPage(message.HtmlBody);
 
                             // Delete mail https://stackoverflow.com/a/24204804/6237448
@@ -234,14 +236,16 @@ namespace AutomaticMailPrinter
         public static bool? PrintHtmlPages(string printer, params string[] urls)
         {
             // Spawn the code to print the packing slips
-            var info = new ProcessStartInfo();
-            info.Arguments = $"-p \"{printer}\" -a A4 \"{string.Join("\" \"", urls)}\"";
+            var info = new ProcessStartInfo
+            {
+                Arguments = $"-p \"{printer}\" -a A4 \"{string.Join("\" \"", urls)}\""
+            };
             var pathToExe = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             info.FileName = Path.Combine(pathToExe, "PrintHtml", "PrintHtml.exe");
             Process.Start(info);
 
-
             return null;
+
             /*using (var p = Process.Start(info))
             {
                 // Wait until it is finished
