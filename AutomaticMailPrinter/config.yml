@@ -10,5 +10,6 @@ filter:
 # Optional: URL für Webhooks
 # webhook_url: "https://example.com/webhook"
 # PDFs statt HTML drucken (Anhänge mit .pdf oder application/pdf)
+# Wenn du keine PDFs drucken willst, setze dies auf false
 print_pdf_attachments: true
 
