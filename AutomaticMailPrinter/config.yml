@@ -1,0 +1,14 @@
+imap_server: imap.gmail.com
+imap_port: 993
+mail: youremail@example.com
+password: yourpassword
+printer_name: Brother HL-L5200DW series Printer
+timer_interval_in_seconds: 60
+filter:
+  - Order
+  - Your Message
+# Optional: URL für Webhooks
+# webhook_url: "https://example.com/webhook"
+# PDFs statt HTML drucken (Anhänge mit .pdf oder application/pdf)
+print_pdf_attachments: true
+

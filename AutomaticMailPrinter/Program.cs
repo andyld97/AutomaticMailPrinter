@@ -9,6 +9,7 @@ using System.Text.Json;
 using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
+using MimeKit;
 
 namespace AutomaticMailPrinter
 {
@@ -22,6 +23,7 @@ namespace AutomaticMailPrinter
         public static string WebHookUrl { get; private set; }
         private static string[] Filter = new string[0];
         private static int ImapPort;
+        private static bool PrintPdfAttachments = false;
 
         private static ImapClient client = new ImapClient();
         private static IMailFolder inbox;
@@ -40,29 +42,46 @@ namespace AutomaticMailPrinter
             int intervalInSecods = 60;
             try
             {
-                string configPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "config.json");
-                var configDocument = System.Text.Json.JsonSerializer.Deserialize<JsonDocument>(System.IO.File.ReadAllText(configPath));
+                // Prefer YAML if present; else fallback to JSON
+                string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                string yamlPath = System.IO.Path.Combine(baseDir, "config.yml");
+                string jsonPath = System.IO.Path.Combine(baseDir, "config.json");
 
-                ImapServer = configDocument.RootElement.GetProperty("imap_server").GetString();
-                ImapPort = configDocument.RootElement.GetProperty("imap_port").GetInt32();
-                MailAddress = configDocument.RootElement.GetProperty("mail").GetString();
-                Password = configDocument.RootElement.GetProperty("password").GetString();
-                PrinterName = configDocument.RootElement.GetProperty("printer_name").GetString();
-
-                try
+                if (System.IO.File.Exists(yamlPath))
                 {
-                    // Can be empty or even may not existing ...
-                    WebHookUrl = configDocument.RootElement.GetProperty("webhook_url").GetString();
+                    LoadConfigFromYaml(yamlPath, ref intervalInSecods);
                 }
-                catch { }
+                else
+                {
+                    var configDocument = System.Text.Json.JsonSerializer.Deserialize<JsonDocument>(System.IO.File.ReadAllText(jsonPath));
 
-                intervalInSecods = configDocument.RootElement.GetProperty("timer_interval_in_seconds").GetInt32();
+                    ImapServer = configDocument.RootElement.GetProperty("imap_server").GetString();
+                    ImapPort = configDocument.RootElement.GetProperty("imap_port").GetInt32();
+                    MailAddress = configDocument.RootElement.GetProperty("mail").GetString();
+                    Password = configDocument.RootElement.GetProperty("password").GetString();
+                    PrinterName = configDocument.RootElement.GetProperty("printer_name").GetString();
 
-                var filterProperty = configDocument.RootElement.GetProperty("filter");
-                int counter = 0;
-                Filter = new string[filterProperty.GetArrayLength()];
-                foreach (var word in filterProperty.EnumerateArray())
-                    Filter[counter++] = word.GetString().ToLower();
+                    try
+                    {
+                        // Can be empty or even may not existing ...
+                        WebHookUrl = configDocument.RootElement.GetProperty("webhook_url").GetString();
+                    }
+                    catch { }
+
+                    intervalInSecods = configDocument.RootElement.GetProperty("timer_interval_in_seconds").GetInt32();
+
+                    try
+                    {
+                        PrintPdfAttachments = configDocument.RootElement.GetProperty("print_pdf_attachments").GetBoolean();
+                    }
+                    catch { }
+
+                    var filterProperty = configDocument.RootElement.GetProperty("filter");
+                    int counter = 0;
+                    Filter = new string[filterProperty.GetArrayLength()];
+                    foreach (var word in filterProperty.EnumerateArray())
+                        Filter[counter++] = word.GetString().ToLower();
+                }
             }
             catch (Exception ex)
             {
@@ -176,7 +195,23 @@ namespace AutomaticMailPrinter
                             // Print mail
                             Logger.LogInfo(string.Format(Properties.Resources.strPrintMessage, message.Subject, PrinterName));
 
-                            PrintHtmlPage(message.HtmlBody);
+                            if (PrintPdfAttachments)
+                            {
+                                var pdfs = SavePdfAttachmentsToTempFiles(message);
+                                if (pdfs != null && pdfs.Any())
+                                {
+                                    PrintPdfFiles(PrinterName, pdfs.ToArray());
+                                }
+                                else
+                                {
+                                    // Fallback to HTML if no PDFs found
+                                    PrintHtmlPage(message.HtmlBody);
+                                }
+                            }
+                            else
+                            {
+                                PrintHtmlPage(message.HtmlBody);
+                            }
 
                             // Delete mail https://stackoverflow.com/a/24204804/6237448
                             Logger.LogInfo(Properties.Resources.strMarkMailAsDeleted);                     
@@ -255,6 +290,179 @@ namespace AutomaticMailPrinter
                 // Return the exit code
                 return p.ExitCode == 0;
             }*/
+        }
+
+        private static void LoadConfigFromYaml(string yamlPath, ref int intervalInSecods)
+        {
+            try
+            {
+                var lines = System.IO.File.ReadAllLines(yamlPath);
+                var values = ParseSimpleYaml(lines);
+
+                ImapServer = GetDictString(values, "imap_server");
+                ImapPort = GetDictInt(values, "imap_port", 993);
+                MailAddress = GetDictString(values, "mail");
+                Password = GetDictString(values, "password");
+                PrinterName = GetDictString(values, "printer_name");
+                WebHookUrl = GetDictString(values, "webhook_url");
+                intervalInSecods = GetDictInt(values, "timer_interval_in_seconds", intervalInSecods);
+                PrintPdfAttachments = GetDictBool(values, "print_pdf_attachments", false);
+
+                if (values.TryGetValue("filter", out var filterObj) && filterObj is System.Collections.Generic.List<string> list)
+                {
+                    Filter = list.Select(s => (s ?? string.Empty).ToLower()).ToArray();
+                }
+                else if (values.TryGetValue("filter", out var filterStr) && filterStr is string s && !string.IsNullOrWhiteSpace(s))
+                {
+                    Filter = s.Split(',').Select(x => x.Trim().ToLower()).Where(x => !string.IsNullOrEmpty(x)).ToArray();
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError("Failed to read YAML config.", ex);
+                throw;
+            }
+        }
+
+        private static System.Collections.Generic.Dictionary<string, object> ParseSimpleYaml(string[] lines)
+        {
+            var dict = new System.Collections.Generic.Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+            string currentListKey = null;
+            System.Collections.Generic.List<string> currentList = null;
+
+            foreach (var rawLine in lines)
+            {
+                var line = rawLine;
+                if (line == null) continue;
+                line = line.Trim();
+                if (line.Length == 0) continue;
+                if (line.StartsWith("#")) continue;
+
+                // list item
+                if (line.StartsWith("- "))
+                {
+                    if (currentListKey != null)
+                    {
+                        currentList = currentList ?? new System.Collections.Generic.List<string>();
+                        var item = line.Substring(2).Trim();
+                        currentList.Add(Unquote(item));
+                        dict[currentListKey] = currentList;
+                    }
+                    continue;
+                }
+
+                var idx = line.IndexOf(':');
+                if (idx <= 0)
+                    continue;
+
+                var key = line.Substring(0, idx).Trim();
+                var value = line.Substring(idx + 1).Trim();
+
+                if (string.IsNullOrEmpty(value))
+                {
+                    // start list or nested section; we only support simple lists here
+                    currentListKey = key;
+                    currentList = new System.Collections.Generic.List<string>();
+                    dict[currentListKey] = currentList;
+                }
+                else
+                {
+                    currentListKey = null;
+                    dict[key] = Unquote(value);
+                }
+            }
+
+            return dict;
+        }
+
+        private static string Unquote(string v)
+        {
+            if (string.IsNullOrEmpty(v)) return v;
+            if ((v.StartsWith("\"") && v.EndsWith("\"")) || (v.StartsWith("'") && v.EndsWith("'")))
+                return v.Substring(1, v.Length - 2);
+            return v;
+        }
+
+        private static string GetDictString(System.Collections.Generic.Dictionary<string, object> dict, string key)
+        {
+            if (dict.TryGetValue(key, out var v) && v != null)
+                return Convert.ToString(v);
+            return null;
+        }
+
+        private static int GetDictInt(System.Collections.Generic.Dictionary<string, object> dict, string key, int defaultValue)
+        {
+            if (dict.TryGetValue(key, out var v) && v != null)
+            {
+                if (v is int i) return i;
+                if (int.TryParse(Convert.ToString(v), out var parsed)) return parsed;
+            }
+            return defaultValue;
+        }
+
+        private static bool GetDictBool(System.Collections.Generic.Dictionary<string, object> dict, string key, bool defaultValue)
+        {
+            if (dict.TryGetValue(key, out var v) && v != null)
+            {
+                var s = Convert.ToString(v)?.Trim().ToLowerInvariant();
+                if (s == "true" || s == "yes" || s == "1") return true;
+                if (s == "false" || s == "no" || s == "0") return false;
+            }
+            return defaultValue;
+        }
+
+        private static System.Collections.Generic.List<string> SavePdfAttachmentsToTempFiles(MimeMessage message)
+        {
+            var result = new System.Collections.Generic.List<string>();
+            if (message == null) return result;
+
+            foreach (var attachment in message.Attachments)
+            {
+                if (attachment is MimePart part)
+                {
+                    var mimeType = part.ContentType?.MimeType ?? string.Empty;
+                    var fileName = part.FileName ?? string.Empty;
+                    bool isPdf = mimeType.Equals("application/pdf", StringComparison.OrdinalIgnoreCase)
+                                 || fileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase);
+                    if (isPdf)
+                    {
+                        var tempPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), Guid.NewGuid().ToString("N") + ".pdf");
+                        using (var stream = System.IO.File.Create(tempPath))
+                        {
+                            part.Content.DecodeTo(stream);
+                        }
+                        result.Add(tempPath);
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        private static void PrintPdfFiles(string printer, params string[] pdfPaths)
+        {
+            if (pdfPaths == null || pdfPaths.Length == 0) return;
+
+            foreach (var pdf in pdfPaths)
+            {
+                try
+                {
+                    var psi = new ProcessStartInfo
+                    {
+                        FileName = pdf,
+                        Verb = "printto",
+                        UseShellExecute = true,
+                        CreateNoWindow = true,
+                        WindowStyle = ProcessWindowStyle.Hidden,
+                        Arguments = $"\"{printer}\""
+                    };
+                    Process.Start(psi);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError($"Failed to print PDF '{pdf}'", ex);
+                }
+            }
         }
     }
 }
